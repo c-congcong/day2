@@ -34,7 +34,7 @@ class Students(models.Model):
     gender = models.SmallIntegerField(choices=gender_choices, default=1)
 
     class Meta:
-        db_table = "ba_user1"
+        db_table = "ba_student"
         verbose_name = "学生"
         verbose_name_plural = verbose_name
 
