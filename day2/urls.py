@@ -24,6 +24,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('app/', include("apps.urls")),
     path('app2/', include("app2.urls")),
+    path('app2/', include("app3.urls")),
+    path('app2/', include("app_work.urls")),
     url(r"^media/(?P<path>.*)", serve, {"document_root": settings.MEDIA_ROOT}),
 
 ]
