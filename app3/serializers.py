@@ -74,3 +74,5 @@ class EmployeeDeserializer(serializers.Serializer):
     def create(self, validated_data):
         print(validated_data)
         return Employee.objects.create(**validated_data)
+
+

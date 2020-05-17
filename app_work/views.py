@@ -107,23 +107,82 @@ class StudentsAPIVIew(APIView):
             "results": serializers.StudentsModelSerializer(st_obj).data
         })
 
-    def patch(self, request, *args, **kwargs):
+    #修改单个
+    # def patch(self, request, *args, **kwargs):
+    #     request_data = request.data
+    #     st_id = kwargs.get("pk")
+    #     try:
+    #         st_obj = Students1.objects.get(pk=st_id)
+    #     except:
+    #         return Response({
+    #             "status": 500,
+    #             "message": "学生不存在",
+    #         })
+    #     st_ser = serializers.StudentsModelSerializer(data=request_data, instance=st_obj,
+    #                                                  partial=True)  # partial=True  指定序列化器为更新部分字段  有哪个字段的值就修改哪个字段  没有不修改
+    #     st_ser.is_valid(raise_exception=True)
+    #     st_ser.save()
+    #
+    #     return Response({
+    #         "status": 200,
+    #         "message": "更新成功",
+    #         "results": serializers.StudentsModelSerializer(st_obj).data
+    #     })
+
+    # 修改多个
+    def patch(self,request,*args,**kwargs):
         request_data = request.data
-        st_id = kwargs.get("pk")
-        try:
-            st_obj = Students1.objects.get(pk=st_id)
-        except:
+        book_id = kwargs.get('id')
+        #i的存在返回得是字典，单改
+        if book_id and isinstance(request_data,dict):
+            # 单改转换成 群改一个
+            book_ids = [book_id, ]
+            request_data = [request_data, ]
+        # id不存在返回列表 多改
+        elif not book_id and isinstance(request_data,list):
+            # 群改
+            book_ids = []
+            # 从获取的数据中将pk拿出来放进book_ids
+            for dic in request_data:
+                pk = dic.pop("pk", None)
+                if pk:
+                    book_ids.append(pk)
+                else:
+                    return Response({
+                        "status": 500,
+                        "message": "ID不存在"
+                    })
+        else:
             return Response({
-                "status": 500,
-                "message": "学生不存在",
+                "status":500,
+                "message":"数据格式不对"
             })
-        st_ser = serializers.StudentsModelSerializer(data=request_data, instance=st_obj,
-                                                     partial=True)  # partial=True  指定序列化器为更新部分字段  有哪个字段的值就修改哪个字段  没有不修改
+
+            # 对book_ids与request_data数据进行筛选
+            # 对不存在的对象pk进行移除 request_data 也移除  如果存在  查询出对应的对象
+            book_list = []
+            # TODO 不要循环中对列表的长度做操作
+            new_data = []
+            #  [ {pk:1, publish: 4}, {pk:2, price: 88.8}, {pk:3, boo_name: 123} ]
+            for index, pk in enumerate(book_ids):
+                try:
+                    book_obj = Book.objects.get(pk=pk)
+                    book_list.append(book_obj)
+                    # 对应的索引的数据保存
+                    new_data.append(request_data[index])
+                    # print(request_data[index])
+                except:
+                    # 不存在则移除  错误示范
+                    # index = book_ids.index(pk)
+                    # request_data.pop(index)
+                    continue
+
+        st_ser = serializers.StudentsModelSerializer(data=request_data, instance=st_obj, partial=False)
         st_ser.is_valid(raise_exception=True)
         st_ser.save()
 
         return Response({
             "status": 200,
             "message": "更新成功",
-            "results": serializers.StudentsModelSerializer(st_obj).data
+            "results": serializers.BookModelSerializerV2(book_list, many=True).data
         })
